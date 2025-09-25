@@ -13,7 +13,7 @@ export default function App() {
                 <Link href="/about" className="font-medium">About Us</Link>
             </NavbarItem>
             <NavbarItem>
-                <Link href="/create" className="font-medium">Create a Plan</Link>
+                <Link href="/create-plan" className="font-medium">Create a Plan</Link>
             </NavbarItem>
         </NavbarContent>
         <NavbarContent justify="end">
@@ -24,7 +24,3 @@ export default function App() {
       </Navbar>
   );
 }
-<nav className="flex gap-4 items-center px-4 py-3">
-          
-         
-        </nav>
