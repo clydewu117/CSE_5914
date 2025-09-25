@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #eef2f8;
+  --foreground: rgba(12, 44, 63);
 }
 
 @theme inline {
@@ -14,13 +14,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f8f4ee;
+    --foreground: rgba(12, 44, 63);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial);
+}
+
+code, pre, kbd, samp {
+  font-family: var(--font-geist-mono, 'Geologica', SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace);
+}
+/* class to apply Geologica (provided by next/font in layout.tsx) */
+.geologica-font {
+  font-family: var(--font-geologica, 'Geologica', system-ui, sans-serif);
 }
