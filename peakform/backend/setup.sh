@@ -9,14 +9,14 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
+if [ ! -d "peakform" ]; then
     echo "Creating virtual environment..."
-    python3 -m venv venv
+    python3 -m venv peakform
 fi
 
 # Activate virtual environment
 echo "Activating virtual environment..."
-source venv/bin/activate
+source peakform/bin/activate
 
 # Install dependencies
 echo "Installing dependencies..."
@@ -36,7 +36,7 @@ alembic upgrade head
 echo "Setup complete!"
 echo ""
 echo "To start the development server:"
-echo "  source venv/bin/activate  # Activate virtual environment"
+echo "  source peakform/bin/activate  # Activate virtual environment"
 echo "  python run_dev.py         # Start development server"
 echo ""
 echo "API will be available at: http://127.0.0.1:8000"

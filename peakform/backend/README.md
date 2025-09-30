@@ -18,7 +18,7 @@ A FastAPI-based workout plan generation API that supports user authentication an
 ./setup.sh
 
 # Start development server
-source venv/bin/activate
+source peakform/bin/activate
 python run_dev.py
 ```
 
@@ -26,8 +26,8 @@ python run_dev.py
 
 ```bash
 # 1. Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv peakform
+source peakform/bin/activate
 
 # 2. Install dependencies
 pip install -r requirements.txt
