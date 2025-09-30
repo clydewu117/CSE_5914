@@ -25,14 +25,12 @@ export default function Home() {
           <a
             className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center text-background gap-2 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
             style={{
-              backgroundImage: "linear-gradient(90deg, var(--foreground) 0%, #1f7dc0ff 100%)",
+              backgroundImage: "linear-gradient(90deg, var(--foreground) 30%, #1f7dc0ff 100%)",
               color: "white",
             }}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="\create-plan"
           >
-            Deploy now
+            Start the climb
           </a>
         </div>
       </main>
