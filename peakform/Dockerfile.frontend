@@ -1,0 +1,27 @@
+### Multi-stage Dockerfile for Next.js frontend (production)
+FROM node:20-slim AS base
+WORKDIR /app
+# Copy package manifest and install dependencies
+COPY package.json package-lock.json* pnpm-lock.yaml* ./
+
+# Install system build deps required for some npm packages (native builds)
+RUN apt-get update && apt-get install -y --no-install-recommends python3 build-essential \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Install dependencies (use npm install to avoid lockfile incompatibilities inside the container)
+RUN npm install --legacy-peer-deps --no-audit --no-fund
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+FROM node:20-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=base /app/package.json ./
+COPY --from=base /app/.next ./.next
+COPY --from=base /app/public ./public
+COPY --from=base /app/node_modules ./node_modules
+
+EXPOSE 3000
+CMD ["npm", "start"]
