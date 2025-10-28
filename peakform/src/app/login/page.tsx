@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +43,9 @@ export default function LoginPage() {
           setError("");
           setIsRegisterMode(false); // Switch to login after successful registration
         } else {
-          localStorage.setItem("access_token", data.access_token);
-          router.push("/");
+          // Store token via AuthContext and redirect to profile
+          await login(data.access_token);
+          router.push("/profile");
         }
       } else {
         const errorData = await response.json();
