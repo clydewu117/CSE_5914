@@ -8,6 +8,9 @@ import { useRouter } from "next/navigation";
 const NAVBAR_HEX = '#0c2c3f';
 const NAVBAR_DARK = '#0b3952'
 
+const NAVBAR_HEX = '#0c2c3f';
+const NAVBAR_DARK = '#0b3952'
+
 
 export default function App() {
     const { user, logout } = useAuth();
