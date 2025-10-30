@@ -49,8 +49,5 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Environment files
-.env
-
 # db
 /backend/peakform.db
