@@ -43,9 +43,9 @@ export default function LoginPage() {
           setError("");
           setIsRegisterMode(false); // Switch to login after successful registration
         } else {
-          // Store token via AuthContext and redirect to profile
-          await login(data.access_token);
-          router.push("/profile");
+          localStorage.setItem("access_token", data.access_token);
+          try { window.dispatchEvent(new Event("peakform:auth-changed")); } catch {}
+          router.push("/plans");
         }
       } else {
         const errorData = await response.json();
