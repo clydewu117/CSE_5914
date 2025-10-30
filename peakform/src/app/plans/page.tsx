@@ -18,6 +18,7 @@ export default function PlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -48,6 +49,31 @@ export default function PlansPage() {
     fetchPlans();
   }, []);
 
+  const handleDelete = async (id: number) => {
+    if (!confirm("Delete this plan? This cannot be undone.")) return;
+    try {
+      setDeletingId(id);
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+      if (!token) {
+        setError("You must be logged in to delete a plan.");
+        return;
+      }
+      const res = await fetch(`http://127.0.0.1:8000/api/plans/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to delete plan");
+      }
+      setPlans((prev) => prev.filter((p) => p.id !== id));
+    } catch (e: any) {
+      setError(e.message || "Something went wrong");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 sm:p-20 font-sans">
       <main className="max-w-3xl mx-auto bg-white/60 p-8 rounded-xl shadow-md">
@@ -71,9 +97,18 @@ export default function PlansPage() {
                   {p.experience} · {p.days_per_week} days/week
                 </div>
               </div>
-              <Link href={`/plans/${p.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
-                View
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link href={`/plans/${p.id}`} className="text-blue-600 hover:text-blue-800 text-sm">
+                  View
+                </Link>
+                <button
+                  onClick={() => handleDelete(p.id)}
+                  disabled={deletingId === p.id}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  {deletingId === p.id ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </li>
           ))}
         </ul>

@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const NAVBAR_HEX = '#0c2c3f';
 const NAVBAR_DARK = '#0b3952'
 
 
 export default function App() {
+    const router = useRouter();
     const [username, setUsername] = useState<string | null>(null);
     const isAuthenticated = !!username;
 
@@ -57,7 +59,19 @@ export default function App() {
             <NavbarContent justify="end">
                 <NavbarItem className="hidden lg:flex">
                     {isAuthenticated ? (
-                        <span className="font-medium text-white">Welcome, {username}!</span>
+                        <div className="flex items-center gap-4">
+                            <span className="font-medium text-white">Welcome, {username}!</span>
+                            <button
+                                onClick={() => {
+                                    try { localStorage.removeItem('access_token'); } catch {}
+                                    setUsername(null);
+                                    router.push('/');
+                                }}
+                                className="text-white/90 hover:text-white font-medium"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     ) : (
                         <Link href="/login" className="font-medium text-white">Login</Link>
                     )}
