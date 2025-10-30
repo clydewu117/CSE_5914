@@ -19,6 +19,9 @@ export default function CreatePlanPage() {
     muscleGroups: "",
     constraints: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [savedPlan, setSavedPlan] = useState<any | null>(null);
 
   useEffect(() => {
     try {
@@ -39,6 +42,57 @@ export default function CreatePlanPage() {
 
   const update = (k: keyof Answers, v: string) =>
     setAnswers((s) => ({ ...s, [k]: v }));
+
+  const handleSave = async () => {
+    setError("");
+    setIsSaving(true);
+    setSavedPlan(null);
+
+    // Basic validation
+    if (!answers.experience || !answers.daysPerWeek) {
+      setError("Please select experience and days per week.");
+      setIsSaving(false);
+      return;
+    }
+
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+      if (!token) {
+        setError("You must be logged in to save a plan.");
+        setIsSaving(false);
+        return;
+      }
+
+      const payload = {
+        name: "My Workout Plan",
+        experience: answers.experience,
+        days_per_week: Number(answers.daysPerWeek),
+        muscle_groups: answers.muscleGroups || undefined,
+        constraints: answers.constraints || undefined,
+      };
+
+      const res = await fetch("http://127.0.0.1:8000/api/plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to save plan");
+      }
+
+      const data = await res.json();
+      setSavedPlan(data);
+    } catch (e: any) {
+      setError(e.message || "Something went wrong");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen p-8 sm:p-20 font-sans">
@@ -107,9 +161,11 @@ export default function CreatePlanPage() {
           <div className="flex gap-3 mt-4">
             <button
               type="button"
-              className="bg-foreground text-background px-4 py-2 rounded"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-foreground text-background px-4 py-2 rounded disabled:opacity-60"
             >
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </button>
 
             <button
@@ -125,7 +181,27 @@ export default function CreatePlanPage() {
           </div>
         </form>
 
-        
+        {error && (
+          <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        {savedPlan && (
+          <div className="mt-6 bg-white border rounded p-4">
+            <h2 className="text-lg font-semibold mb-2">Plan saved</h2>
+            <div className="text-sm text-gray-700">
+              <div className="mb-2">Plan ID: {savedPlan.id}</div>
+              {savedPlan.generated_plan ? (
+                <pre className="whitespace-pre-wrap break-words text-xs bg-gray-50 p-3 rounded border overflow-auto max-h-80">
+{JSON.stringify(savedPlan.generated_plan, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-sm text-gray-600">No generated plan yet. It will appear here after generation is enabled.</p>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
