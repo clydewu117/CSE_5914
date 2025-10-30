@@ -18,6 +18,9 @@ export default function App() {
                 <NavbarItem>
                     <Link href="/create-plan" className="font-medium text-white">Create a Plan</Link>
                 </NavbarItem>
+                <NavbarItem>
+                    <Link href="/plans" className="font-medium text-white">View my plans</Link>
+                </NavbarItem>
             </NavbarContent>
             <NavbarContent justify="end">
                 <NavbarItem className="hidden lg:flex">

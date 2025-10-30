@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 type Answers = {
@@ -13,6 +14,7 @@ type Answers = {
 const STORAGE_KEY = "peakform:create-plan:answers";
 
 export default function CreatePlanPage() {
+  const router = useRouter();
   const [answers, setAnswers] = useState<Answers>({
     experience: "",
     daysPerWeek: "",
@@ -86,7 +88,10 @@ export default function CreatePlanPage() {
       }
 
       const data = await res.json();
-      setSavedPlan(data);
+      // clear local draft since plan is now saved
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      // redirect to the new plan page
+      router.push(`/plans/${data.id}`);
     } catch (e: any) {
       setError(e.message || "Something went wrong");
     } finally {
@@ -190,16 +195,7 @@ export default function CreatePlanPage() {
         {savedPlan && (
           <div className="mt-6 bg-white border rounded p-4">
             <h2 className="text-lg font-semibold mb-2">Plan saved</h2>
-            <div className="text-sm text-gray-700">
-              <div className="mb-2">Plan ID: {savedPlan.id}</div>
-              {savedPlan.generated_plan ? (
-                <pre className="whitespace-pre-wrap break-words text-xs bg-gray-50 p-3 rounded border overflow-auto max-h-80">
-{JSON.stringify(savedPlan.generated_plan, null, 2)}
-                </pre>
-              ) : (
-                <p className="text-sm text-gray-600">No generated plan yet. It will appear here after generation is enabled.</p>
-              )}
-            </div>
+            <div className="text-sm text-gray-700">Redirecting...</div>
           </div>
         )}
       </main>
