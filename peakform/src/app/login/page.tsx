@@ -42,7 +42,8 @@ export default function LoginPage() {
           setIsRegisterMode(false); // Switch to login after successful registration
         } else {
           localStorage.setItem("access_token", data.access_token);
-          router.push("/");
+          try { window.dispatchEvent(new Event("peakform:auth-changed")); } catch {}
+          router.push("/plans");
         }
       } else {
         const errorData = await response.json();

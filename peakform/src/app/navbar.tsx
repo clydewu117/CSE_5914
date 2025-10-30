@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@heroui/navbar';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const NAVBAR_HEX = '#0c2c3f';
 const NAVBAR_DARK = '#0b3952'
@@ -13,6 +13,7 @@ export default function App() {
     const router = useRouter();
     const [username, setUsername] = useState<string | null>(null);
     const isAuthenticated = !!username;
+    const pathname = usePathname();
 
     useEffect(() => {
         const loadUser = async () => {
@@ -36,7 +37,13 @@ export default function App() {
             }
         };
         loadUser();
-    }, []);
+
+        const onAuthChanged = () => loadUser();
+        try { window.addEventListener('peakform:auth-changed', onAuthChanged); } catch {}
+        return () => {
+            try { window.removeEventListener('peakform:auth-changed', onAuthChanged); } catch {}
+        };
+    }, [pathname]);
 
     return (
         <Navbar style={{ backgroundColor: NAVBAR_HEX, borderBottom: `4px solid ${NAVBAR_DARK}` }} className="px-4 sm:px-8 text-white geologica-font">
