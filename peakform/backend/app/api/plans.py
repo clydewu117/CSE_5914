@@ -8,7 +8,19 @@ from app.database import get_db
 from app.models import WorkoutPlan, User
 from app.schemas import WorkoutPlanCreate, WorkoutPlanResponse, WorkoutPlanUpdate
 from app.api.auth import get_current_user
+import os
+from typing import Dict, Any
+import logging
+
 from app.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_API_BASE
+
+# Elasticsearch defaults (best-effort; override with env)
+ES_URL = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
+ES_USER = os.getenv("ELASTIC_USERNAME", "elastic")
+ES_PASS = os.getenv("ELASTIC_PASSWORD", "CSE5914peakform")
+ES_INDEX = os.getenv("ELASTIC_INDEX", "exercises")
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -164,7 +176,60 @@ async def create_and_generate_workout_plan(
     db.refresh(db_plan)
 
     # 2) Build prompt and call Gemini
+    # Try to retrieve a few relevant exercises from Elasticsearch to provide context to the LLM.
+    es_examples: list[Dict[str, Any]] = []
+    try:
+        # build a simple free-text query from muscle_groups + constraints + name
+        qparts = [p for p in (plan.muscle_groups, plan.constraints, plan.name) if p]
+        es_query_text = " ".join(qparts) or plan.experience
+        es_url = f"{ES_URL.rstrip('/')}/{ES_INDEX}/_search"
+        es_body = {
+            "size": 8,
+            "query": {
+                "multi_match": {
+                    "query": es_query_text,
+                    "fields": ["name^3", "muscles^2", "snippet", "description"],
+                }
+            },
+            "_source": ["id", "name", "muscles", "equipment", "snippet"]
+        }
+
+        async with httpx.AsyncClient(timeout=10.0) as es_client:
+            resp = await es_client.post(es_url, json=es_body, auth=(ES_USER, ES_PASS))
+            if resp.status_code == 200:
+                payload = resp.json()
+                hits = payload.get("hits", {}).get("hits", [])
+                for h in hits:
+                    src = h.get("_source", {})
+                    # keep only a few fields and safe types
+                    es_examples.append({
+                        "name": src.get("name"),
+                        "muscles": src.get("muscles"),
+                        "equipment": src.get("equipment"),
+                        "snippet": src.get("snippet"),
+                    })
+    except Exception as e:
+        # best-effort: if ES is unreachable or fails, continue without examples
+        es_examples = []
+        logger.warning("Elasticsearch retrieval failed: %s", str(e))
+
+    # log whether ES examples were used
+    if es_examples:
+        logger.info("Elasticsearch examples found: %d", len(es_examples))
+    else:
+        logger.info("No Elasticsearch examples used for prompt generation")
+
+    # Build the prompt including examples when available
     prompt = _build_generation_prompt(plan)
+    if es_examples:
+        lines = ["\nContext - example exercises from library (short):"]
+        for ex in es_examples:
+            name = ex.get("name") or "(unnamed)"
+            muscles = (", ".join(ex.get("muscles")) if isinstance(ex.get("muscles"), list) else ex.get("muscles")) or "unspecified"
+            equip = (", ".join(ex.get("equipment")) if isinstance(ex.get("equipment"), list) else ex.get("equipment")) or "none"
+            snippet = (ex.get("snippet") or "").strip().replace("\n", " ")
+            lines.append(f"- {name}; Muscles: {muscles}; Equipment: {equip}; Note: {snippet}")
+        prompt = prompt + "\n" + "\n".join(lines)
     url = f"{GEMINI_API_BASE}/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
     body = {
         "contents": [

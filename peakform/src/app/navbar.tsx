@@ -59,7 +59,7 @@ export default function App() {
                 </NavbarItem>
                 {isAuthenticated && (
                     <NavbarItem>
-                        <Link href="/plans" className="font-medium text-white">View my plans</Link>
+                        <Link href="/plans" className="font-medium text-white">View My Plans</Link>
                     </NavbarItem>
                 )}
             </NavbarContent>
