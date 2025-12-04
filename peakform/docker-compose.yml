@@ -1,23 +1,22 @@
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    ports:
-      - '3000:3000'
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: es01
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:8000
-    depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=CSE5914peakform
+      - xpack.security.enabled=true
     ports:
-      - '8000:8000'
-    environment:
-      - PYTHONUNBUFFERED=1
+      - "9200:9200"
+      - "9300:9300"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     volumes:
-      - ./backend:/app
+      - esdata:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+volumes:
+  esdata:
+    driver: local
